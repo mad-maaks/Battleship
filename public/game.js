@@ -7,50 +7,6 @@ let enemyReady = false;
 let isGameOver = false;
 let currentTurn = 'player1';
 
-
-let ships = document.getElementsByClassName('ships');
-
-for (let ship of ships) {
-    let newX = 0, newY = 0, startX = 0, startY = 0;
-    var rotated = false;
-    console.log(ship)
-
-    ship.addEventListener('mousedown', mouseDown);
-
-    function mouseDown(e) {
-        startX = e.clientX;
-        startY = e.clientY;
-
-        document.addEventListener('mousemove', mouseMove);
-        document.addEventListener('mouseup', mouseUp);
-        ship.addEventListener('wheel', rotateElem);
-    }
-
-    function mouseMove(e) {
-        // console.log(ship)
-        newX = startX - e.clientX;
-        newY = startY - e.clientY;
-
-        startX = e.clientX;
-        startY = e.clientY;
-
-        ship.style.top = (ship.offsetTop - newY) + 'px';
-        ship.style.left = (ship.offsetLeft - newX) + 'px';
-    }
-
-    function mouseUp(e){
-        document.removeEventListener('mousemove', mouseMove);
-    }
-
-    function rotateElem(e) { 
-        var deg = rotated ? 0 : 90;
-        console.log(ship);
-        ship.style.transform = 'rotate('+ deg + 'deg)';
-
-        rotated = !rotated;
-    } 
-}
-
 // Game state variables
 const boardSize = 10;
 
@@ -318,6 +274,3 @@ function disableBoardClicks() {
         cell.parentNode.replaceChild(newCell, cell);
     });
 }
-
-
-'use strict'
