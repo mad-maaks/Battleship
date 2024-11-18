@@ -4,6 +4,16 @@ body {
     flex-direction: column;
     align-items: center;
     font-family: Arial, sans-serif;
+    background-image: url('images/bg1.jpg');
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-size: cover;
+}
+
+.container {
+    background-color: rgba(248, 248, 248, 0.7);
+    margin-bottom: 20px;
+    align-items: center;
 }
 
 .boards {
@@ -18,14 +28,14 @@ body {
 
 .grid {
     display: grid;
-    grid-template-columns: repeat(10, 30px);
-    grid-template-rows: repeat(10, 30px);
+    grid-template-columns: repeat(10, 60px);
+    grid-template-rows: repeat(10, 60px);
     gap: 2px;
 }
 
 .cell {
-    width: 30px;
-    height: 30px;
+    width: 60px;
+    height: 60px;
     background-color: #b0c4de;
     border: 1px solid #2f4f4f;
     cursor: pointer;
@@ -37,4 +47,70 @@ body {
 
 .cell.miss {
     background-color: #1e90ff;
+}
+
+.space {
+    margin-bottom: 30px;
+    align-items: center;
+    width: 700px;
+    height: 100px;
+}
+
+.allShips {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    margin-left: 20px;
+    margin-right: 20px;
+    background-color: rgba(248, 248, 248, 0.7);
+}
+
+.ships {
+    position: fixed;
+}
+
+#carrier {
+    right: 38%;
+    bottom: 80px;
+    width: 300px;
+    height: 60px;
+}
+
+#battleship {
+    left: 36%;
+    bottom: 80px;
+    width: 240px;
+    height: 60px;
+}
+
+#cruiser {
+    left: 57%;
+    bottom: 150px;
+    width: 180px;
+    height: 60px;
+}
+
+#submarine {
+    left: 47%;
+    bottom: 150px;
+    width: 180px;
+    height: 60px;
+}
+
+#destroyer {
+    left: 40%;
+    bottom: 150px;
+    width: 120px;
+    height: 60px;
+}
+
+#patrol {
+    left: 35%;
+    bottom: 150px;
+    width: 60px;
+    height: 60px;
+}
+
+.stats {
+    align-items: center;
 }
