@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Battleship Game</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <h1>Battleship Game</h1>
+    <div class="players">
+    </div>
+    <div class="container">
+        <div class="boards">
+            <div id="player1-board" class="board">
+                <h2>Your Board</h2>
+                <div class="grid" id="grid-player1"></div>
+            </div>
+            <!-- <div id="player2-board" class="board">
+                <h2>Player 2</h2>
+                <div class="grid" id="grid-player2"></div>
+            </div> -->
+        </div>
+    </div>
+    <div class="container">
+        <div class="space"></div>
+        <div class="allShips">
+            <div><img class="ships" id="patrol" draggable="false" src="patrol.png"></div>
+            <div><img class="ships" id="destroyer" draggable="false" src="destroyer.png"></div>
+            <div><img class="ships" id="submarine" draggable="false" src="submarine.png"></div>
+            <div><img class="ships" id="cruiser" draggable="false" src="cruiser.png"></div>
+        </div>
+        <div class="allShips">
+            <div><img class="ships" id="battleship" draggable="false" src="battleship.png"></div>
+            <div><img class="ships" id="carrier" draggable="false" src="carrier.png"></div>
+        </div>
+    </div>
+    <div class="stats">
+        <button id="start-game">Start Game</button>
+        <p id="message"></p>
+        <p id="result"></p>
+    </div>
+
+</body>
+<script src="game.js"></script>
+</html>
