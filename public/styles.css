@@ -132,7 +132,7 @@ body {
 }
 
 .ship { 
-    background-color: #77afba !important;
+    background-color: #3f676f !important;
     transition: background-color 0.2s ease-in-out;
 }
 

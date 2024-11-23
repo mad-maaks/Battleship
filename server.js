@@ -1,8 +1,18 @@
+const config = require('./config');
 const express = require('express');
 const app = express();
 const http = require('http').createServer(app);
-const io = require('socket.io')(http);
+const io = require('socket.io')(http, {
+    cors: {
+        origin: "*",
+        methods: ["GET", "POST"]
+    },
+    pingTimeout: 60000,
+    pingInterval: 25000
+});
+
 const path = require('path');
+const ip = require('ip');
 
 app.use(express.static('public'));
 
@@ -132,7 +142,21 @@ io.on('connection', (socket) => {
     });
 });
 
-const PORT = process.env.PORT || 3000;
-http.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+process.on('uncaughtException', (error) => {
+    console.error('Uncaught Exception:', error);
 });
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('Unhandled Rejection:', reason);
+});
+
+const PORT = process.env.PORT || 3000;
+http.listen(PORT, '0.0.0.0', () => {
+    const ipAddress = ip.address();
+    console.log(`Server running on:`);
+    console.log(`- Local: http://localhost:${PORT}`);
+    console.log(`- Network: http://${ipAddress}:${PORT}`);
+});
+// http.listen(PORT, () => {
+//     console.log(`Server running on port ${PORT}`);
+// });
