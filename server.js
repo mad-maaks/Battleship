@@ -1,266 +1,132 @@
 const express = require('express');
-const path = require('path')
-const http = require('http');
-const { Server } = require('socket.io');
-
 const app = express();
-const server = http.createServer(app);
-const io = new Server(server);
+const http = require('http').createServer(app);
+const io = require('socket.io')(http);
+const path = require('path');
 
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static('public'));
 
-// Game state
-let gameState = {
-    player1: {
-      board: createEmptyBoard(),
-      ready: false,
-      turn: false, // Only one player can have the turn
-    },
-    player2: {
-      board: createEmptyBoard(),
-      ready: false,
-      turn: false,
-    },
-    currentTurn: 'player1', // Player 1 starts
-    isGameOver: false,
-  };
-  
-//   io.emit("turn-changed", { currentTurn: gameState.currentTurn });
-  
-  
-  // Initialize empty board
-function createEmptyBoard() {
-    return Array(10).fill(null).map(() => Array(10).fill("~"));
+// Game state storage
+const games = new Map();
+const playerQueue = [];
+
+class GameState {
+    constructor(player1Id, player2Id) {
+        this.players = {
+            [player1Id]: {
+                board: Array(10).fill(null).map(() => Array(10).fill("~")),
+                ready: false
+            },
+            [player2Id]: {
+                board: Array(10).fill(null).map(() => Array(10).fill("~")),
+                ready: false
+            }
+        };
+        this.currentTurn = player1Id;
+        this.gameStarted = false;
+    }
 }
 
-const connections = [null, null]
+io.on('connection', (socket) => {
+    console.log('User connected:', socket.id);
 
-io.on('connection', socket => {
-    socket.emit('sync-game-state', { gameState });
-  
-    // Find an available player number
-    let playerIndex = -1;
-    for (const i in connections) {
-      if (connections[i] === null) {
-        playerIndex = i
-        break
-      }
-    }
-  
-    // Tell the connecting client what player number they are
-    socket.emit('player-number', playerIndex) 
-    console.log(`Player ${playerIndex} has connected`)
-  
-    // Ignore player 3
-    if (playerIndex === -1) return
-
-    if (playerIndex !== -1) {
-        connections[playerIndex] = socket.id;
-
-        // Place ships for this player and update the game state
-        gameState[`player${parseInt(playerIndex) + 1}`].board = placeShipsOnBoard(createEmptyBoard());
-
-        // Emit the updated game state to both clients
-        io.emit('sync-game-state', { gameState });
-
-        // Sync connection status with other players
-        socket.broadcast.emit('player-connection', playerIndex);
-
-        // If both players are connected, check if they are ready to start
-        if (gameState.player1.board && gameState.player2.board) {
-            io.emit('game-start', { currentTurn: gameState.currentTurn });
-        }
-    }
-  
-    connections[playerIndex] = socket.id;
-  
-    // Tell eveyone what player number just connected
-    socket.broadcast.emit('player-connection', playerIndex);
-  
-    // Check player connections
-    socket.on('check-players', () => {
-      const players = []
-      for (const i in connections) {
-        connections[i] === null ? players.push({connected: false}) : players.push({connected: true})
-      }
-      socket.emit('check-players', players)
-    });
-
-    socket.on('set-ready', (player) => {
-        console.log('Player number:', player);
-        if (gameState[`player${player + 1}`]) {
-            gameState[`player${player + 1}`].ready = true;
-
-            // Only emit 'game-start' once both players are ready and both have placed their ships
-            if (gameState.player1.ready && gameState.player2.ready) {
-                gameState.isGameOver = false;
-                gameState.currentTurn = 'player1'; // Player 1 starts the game
-                io.emit('sync-game-state', { gameState }); // Synchronize game state with both clients
-                io.emit('game-start', { currentTurn: gameState.currentTurn }); // Notify players to start the game
-            }
+    // Handle player joining queue
+    socket.on('joinGame', () => {
+        playerQueue.push(socket.id);
+        
+        if (playerQueue.length >= 2) {
+            const player1Id = playerQueue.shift();
+            const player2Id = playerQueue.shift();
+            
+            // Create new game instance
+            const gameId = `game-${Date.now()}`;
+            games.set(gameId, new GameState(player1Id, player2Id));
+            
+            // Notify both players
+            io.to(player1Id).emit('gameStart', { gameId, playerId: player1Id, opponent: player2Id });
+            io.to(player2Id).emit('gameStart', { gameId, playerId: player2Id, opponent: player1Id });
         } else {
-            console.log('Error: Invalid player number');
+            socket.emit('waitingForOpponent');
         }
     });
-    
-    socket.on("attack", ({ player, row, col }) => {
-        if (player !== gameState.currentTurn) {
-            socket.emit("invalid-attack", { message: "It's not your turn!" });
-            return;
+
+    // Handle ship placement
+    socket.on('placeShips', ({ gameId, board }) => {
+        const game = games.get(gameId);
+        if (!game) return;
+
+        game.players[socket.id].board = board;
+        game.players[socket.id].ready = true;
+
+        // Check if both players are ready
+        const allPlayersReady = Object.values(game.players).every(player => player.ready);
+        if (allPlayersReady && !game.gameStarted) {
+            game.gameStarted = true;
+            io.to(Object.keys(game.players)).emit('bothPlayersReady', { currentTurn: game.currentTurn });
         }
-    
-        const opponent = player === "player1" ? "player2" : "player1";
-        const board = gameState[opponent].board;
-    
-        if (board[row][col] === "X" || board[row][col] === "O") {
-            socket.emit("invalid-attack", { message: "This cell has already been attacked." });
-            return;
-        }
-    
+    });
+
+    // Handle attacks
+    socket.on('attack', ({ gameId, row, col }) => {
+        const game = games.get(gameId);
+        if (!game || !game.gameStarted || game.currentTurn !== socket.id) return;
+
+        const opponent = Object.keys(game.players).find(id => id !== socket.id);
+        const opponentBoard = game.players[opponent].board;
+
         let result;
-        if (board[row][col] === "S") {
-            board[row][col] = "X"; // Hit
+        if (opponentBoard[row][col] === "S") {
+            opponentBoard[row][col] = "X"; // Hit
             result = "hit";
-        } else {
-            board[row][col] = "O"; // Miss
+        } else if (opponentBoard[row][col] === "~") {
+            opponentBoard[row][col] = "O"; // Miss
             result = "miss";
+        } else {
+            return; // Cell already attacked
         }
-    
-        io.emit("attack-result", { player, row, col, result });
-    
-        const allShipsSunk = board.every(row => !row.includes("S"));
-        if (allShipsSunk) {
-            io.emit("game-over", { winner: player });
-            return;
-        }
-    
-        // Switch turn after attack
-        gameState.currentTurn = gameState.currentTurn === "player1" ? "player2" : "player1";
-        io.emit("turn-changed", { currentTurn: gameState.currentTurn }); // Only emit this once
-    });
-    
-    
-    socket.on('place-ships', ({ player, board }) => {
-        if (!gameState[`player${player}`]) return;
 
-        // Update board and set player as ready
-        gameState[`player${player}`].board = board;
-        gameState[`player${player}`].ready = true;
+        // Check for win condition
+        const isGameOver = !opponentBoard.some(row => row.includes("S"));
+        
+        // Switch turns
+        game.currentTurn = opponent;
 
-        // Emit the updated game state and notify other players about the readiness
-        io.emit('sync-game-state', { gameState });
-        io.emit('player-ready', { player, ready: true });
+        // Notify both players of the attack result
+        io.to(Object.keys(game.players)).emit('attackResult', {
+            row,
+            col,
+            result,
+            nextTurn: game.currentTurn,
+            isGameOver,
+            winner: isGameOver ? socket.id : null
+        });
 
-        // Check if both players are ready and start the game
-        if (gameState.player1.ready && gameState.player2.ready) {
-            gameState.currentTurn = 'player1'; // Player 1 starts the game
-            io.emit('game-start', { currentTurn: gameState.currentTurn }); // Start the game
+        if (isGameOver) {
+            games.delete(gameId);
         }
     });
 
-    function placeShipsOnBoard(board) {
-        const ships = [
-          { name: "Carrier", size: 5 },
-          { name: "Battleship", size: 4 },
-          { name: "Cruiser", size: 3 },
-          { name: "Submarine", size: 3 },
-          { name: "Destroyer", size: 2 },
-          { name: "Patrol Boat", size: 1 }
-        ];
-        boardSize = 10;
-      
-        for (const ship of ships) {
-          let placed = false;
-          while (!placed) {
-            const direction = getRandomDirection();
-            const startRow = Math.floor(Math.random() * boardSize);
-            const startCol = Math.floor(Math.random() * boardSize);
-      
-            if (checkFit(board, startRow, startCol, ship.size, direction) &&
-                checkAdjacentCells(board, startRow, startCol, ship.size, direction)) {
-              for (let i = 0; i < ship.size; i++) {
-                const { row, col } = getShipPosition(startRow, startCol, direction, i);
-                board[row][col] = "S";
-              }
-              placed = true;
-            }
-          }
-        }
-      
-        return board;
-    }
-
-    function getRandomDirection() {
-        return Math.floor(Math.random() * 4) + 1;
-    }
-    
-    function checkFit(board, startRow, startCol, size, direction) {
-        for (let i = 0; i < size; i++) {
-            const { row, col } = getShipPosition(startRow, startCol, direction, i);
-    
-            if (
-                row < 0 || row >= boardSize || 
-                col < 0 || col >= boardSize || 
-                board[row][col] !== "~"
-            ) {
-                return false;
-            }
-        }
-        return true;
-    }
-    
-    function checkAdjacentCells(board, startRow, startCol, size, direction) {
-        for (let i = 0; i < size; i++) {
-            const { row, col } = getShipPosition(startRow, startCol, direction, i);
-    
-            for (let r = row - 1; r <= row + 1; r++) {
-                for (let c = col - 1; c <= col + 1; c++) {
-                    if (r === row && c === col) continue;
-    
-                    if (r >= 0 && r < boardSize && c >= 0 && c < boardSize) {
-                        if (board[r][c] === "S") {
-                            return false;
-                        }
-                    }
-                }
-            }
-        }
-        return true;
-    }
-    
-    function getShipPosition(startRow, startCol, direction, index) {
-        switch (direction) {
-            case 1: // Up
-                return { row: startRow - index, col: startCol };
-            case 2: // Right
-                return { row: startRow, col: startCol + index };
-            case 3: // Down
-                return { row: startRow + index, col: startCol };
-            case 4: // Left
-                return { row: startRow, col: startCol - index };
-            default:
-                return { row: startRow, col: startCol };
-        }
-    }
-    
-    // Handle Diconnect
+    // Handle disconnection
     socket.on('disconnect', () => {
-        console.log(`Player ${playerIndex} disconnected`)
-        connections[playerIndex] = null
-        //Tell everyone what player numbe just disconnected
-        socket.broadcast.emit('player-connection', playerIndex)
+        const queueIndex = playerQueue.indexOf(socket.id);
+        if (queueIndex > -1) {
+            playerQueue.splice(queueIndex, 1);
+        }
+
+        // Notify opponent if player disconnects during game
+        for (const [gameId, game] of games.entries()) {
+            if (game.players[socket.id]) {
+                const opponent = Object.keys(game.players).find(id => id !== socket.id);
+                if (opponent) {
+                    io.to(opponent).emit('opponentDisconnected');
+                }
+                games.delete(gameId);
+            }
+        }
     });
-
-        // Timeout connection
-    setTimeout(() => {
-      connections[playerIndex] = null
-      socket.emit('timeout')
-      socket.disconnect()
-    }, 600000) // 10 minute limit per player
 });
-  
 
-
-server.listen(3000, () => {
-    console.log(`Server is running on http://localhost:3000`);
-})
+const PORT = process.env.PORT || 3000;
+http.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+});

@@ -5,34 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Battleship Game</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
 </head>
 <body>
-    <h1>Battleship Game</h1>
-    <div class="boards">
-        <div id="player1-board" class="board">
-            <h2>Player 1</h2>
-            <div class="grid" id="grid-player1"></div>
-        </div>
-        <div id="player2-board" class="board">
-            <h2>Player 2</h2>
-            <div class="grid" id="grid-player2"></div>
-        </div>
+    <div id="waiting-screen">
+        <button id="join-game">Join Game</button>
     </div>
-    <button id="start-game">Ready</button>
-    <p id="message"></p>
-    <p id="result"></p>
     
-    <div class="player-status">
-        <div class="player p1">
-            Player 1
-            <div class="connected">Connected <span></span></div>
+    <div id="game-screen" class="hidden">
+        <div class="placement-controls">
+            <div id="ship-placement-info"></div>
+            <button id="rotate-ship">Rotate Ship</button>
+            <button id="ready-button">Ready</button>
         </div>
-        <div class="player p2">
-            Player 2
-            <div class="connected">Connected <span></span></div>
+        
+        <div class="boards-container">
+            <div>
+                <h2>Your Board</h2>
+                <div id="player-grid" class="grid"></div>
+            </div>
+            <div>
+                <h2>Opponent's Board</h2>
+                <div id="opponent-grid" class="grid"></div>
+            </div>
         </div>
+        
+        <div id="game-status"></div>
     </div>
-    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+
     <script src="/socket.io/socket.io.js"></script>
     <script src="game.js"></script>
 </body>

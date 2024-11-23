@@ -1,276 +1,210 @@
 const socket = io();
+        let gameState = {
+            gameId: null,
+            playerId: null,
+            opponentId: null,
+            currentShipIndex: 0,
+            isHorizontal: true,
+            ships: [
+                { name: "Carrier", size: 5 },
+                { name: "Battleship", size: 4 },
+                { name: "Cruiser", size: 3 },
+                { name: "Submarine", size: 3 },
+                { name: "Destroyer", size: 2 },
+                { name: "Patrol Boat", size: 1 }
+            ],
+            board: Array(10).fill(null).map(() => Array(10).fill("~")),
+            isMyTurn: false,
+            gameStarted: false
+        };
 
-let currentPlayer = "user";
-let playerNum = 0;
-let ready = false;
-let enemyReady = false;
-let isGameOver = false;
-let currentTurn = 'player1';
+        // Initialize UI
+        function initializeUI() {
+            createGrid('player-grid');
+            createGrid('opponent-grid');
+            
+            document.getElementById('join-game').addEventListener('click', () => {
+                socket.emit('joinGame');
+                document.getElementById('join-game').disabled = true;
+            });
 
-// Game state variables
-const boardSize = 10;
+            document.addEventListener('contextmenu', (event) => {
+                event.preventDefault();
+                gameState.isHorizontal = !gameState.isHorizontal;
+            });
 
-const playerBoards = {
-    player1: createEmptyBoard(),
-    player2: createEmptyBoard()
-};
-
-// UI elements
-const startButton = document.getElementById("start-game");
-const messageElement = document.getElementById("message");
-const resultElement = document.getElementById("result");
-
-initializeUI();
-
-socket.on('connect', () => {
-    console.log('Connected to server');
-});
-
-socket.on('sync-game-state', ({ gameState }) => {
-    console.log(gameState);
-    playerBoards.player1 = gameState.player1.board;
-    playerBoards.player2 = gameState.player2.board;
-    renderBoards();
-});
-
-
-socket.on('player-number', num => {
-    if (num === -1) {
-        console.log("Server is full");
-    } else {
-        playerNum = parseInt(num);
-        if (playerNum === 1) currentPlayer = "enemy";
-
-        console.log(playerNum);
-
-        socket.emit('check-players');
-    }
-})
-
-socket.on("player-connection", num => {
-    console.log(`Player ${num} has connected`)
-    playerConnectedOrDisconnected(num);
-})
-
-    // Check player status
-socket.on('check-players', players => {
-    players.forEach((p, i) => {
-        if(p.connected) playerConnectedOrDisconnected(i)
-    })
-})
-
-socket.on("turn-changed", ({ currentTurn }) => {
-    if (currentTurn !== 'player1' && currentTurn !== 'player2') {
-        console.error("Received undefined currentTurn");
-        messageElement.innerText = "Error: Current turn is undefined!";
-        return;
-    }
-
-    console.log(`Turn changed to: ${currentTurn}`);
-    messageElement.innerText = `${currentTurn}'s turn to attack!`;
-
-    if (currentTurn === 'player2') {
-        console.log("Enabling Player 1's board, disabling Player 2's board");
-        enableBoard('player1');
-        disableBoard('player2');
-    } else {
-        console.log("Enabling Player 2's board, disabling Player 1's board");
-        enableBoard('player2');
-        disableBoard('player1');
-    }
-
-    // updateBoardInteractivity();
-});
-
-function enableBoard(player) {
-    const board = document.getElementById(`grid-${player}`);
-    console.log(`Enabling board: grid-${player}`);
-    board.style.pointerEvents = "auto";
-}
-
-function disableBoard(player) {
-    const board = document.getElementById(`grid-${player}`);
-    console.log(`Disabling board: grid-${player}`);
-    board.style.pointerEvents = "none";
-}
-
-
-socket.on('game-start', () => {
-    messageElement.innerText = "Game started! Player 1's turn to attack!";
-    updateBoardInteractivity();
-})
-
-socket.on('player-ready', ({ player, ready }) => {
-    if (ready) {
-        messageElement.innerText = `${player} is ready!`;
-    }
-});
-
-socket.on('attack-result', ({ player, row, col, result }) => {
-    const opponent = player === "player1" ? "player2" : "player1";
-    const board = playerBoards[opponent];
-
-    if (result === "hit") {
-        board[row][col] = "X";
-        document.querySelector(`#grid-${opponent} .cell[data-row="${row}"][data-col="${col}"]`).classList.add("hit");
-    } else if (result === "miss") {
-        board[row][col] = "O";
-        document.querySelector(`#grid-${opponent} .cell[data-row="${row}"][data-col="${col}"]`).classList.add("miss");
-    }
-});
-
-socket.on("turn-changed", ({ currentTurn }) => {
-    if (!currentTurn) {
-        console.error("Received undefined currentTurn");
-        messageElement.innerText = "Error: Current turn is undefined!";
-        return;
-    }
-    console.log(`Turn changed to: ${currentTurn}`);
-    messageElement.innerText = `${currentTurn}'s turn to attack!`;
-    updateBoardInteractivity(currentTurn);
-});
-
-
-socket.on("game-over", ({ winner }) => {
-    isGameOver = true; // Set game state to over
-    messageElement.innerText = `${winner} wins the game!`;
-    disableBoardClicks(); // Disable further interactions
-});
-
-
-// On Timeout
-socket.on('timeout', () => {
-    infoDisplay.innerHTML = 'You have reached the 10 minute limit'
-});
-
-function playerConnectedOrDisconnected(num) {
-    let player = `.p${parseInt(num) + 1}`;
-    document.querySelector(`${player} .connected span`).classList.toggle('green');
-    if(parseInt(num) === playerNum) document.querySelector(player).style.fontWeight = 'bold';
-}
-
-startButton.addEventListener("click", () => {
-    socket.emit('set-ready', playerNum);
-    const playerBoard = playerBoards[`player${playerNum + 1}`];
-
-    // Send board to server
-    socket.emit('place-ships', { player: `player${playerNum + 1}`, board: playerBoard });
-
-    // Update UI
-    messageElement.innerText = "Waiting for the other player...";
-});
-
-function createEmptyBoard() {
-    return Array(boardSize).fill(null).map(() => Array(boardSize).fill("~"));
-}
-
-function initializeUI() {
-    createGrid("player1");
-    createGrid("player2");
-}
-
-function renderBoards() {
-    renderGrid("player1");
-    renderGrid("player2");
-}
-
-function createGrid(player) {
-    const gridElement = document.getElementById(`grid-${player}`);
-    gridElement.innerHTML = ""; 
-    for (let row = 0; row < boardSize; row++) {
-        for (let col = 0; col < boardSize; col++) {
-            const cell = document.createElement("div");
-            cell.classList.add("cell");
-            cell.dataset.row = row;
-            cell.dataset.col = col;
-            gridElement.appendChild(cell);
+            document.getElementById('ready-button').addEventListener('click', () => {
+                socket.emit('placeShips', {
+                    gameId: gameState.gameId,
+                    board: gameState.board
+                });
+                document.getElementById('ready-button').disabled = true;
+                document.querySelector('.placement-controls').classList.add('hidden');
+            });
         }
-    }
-}
 
-function renderGrid(player) {
-    const board = playerBoards[player];
-    const gridElement = document.getElementById(`grid-${player}`);
-    for (let row = 0; row < boardSize; row++) {
-        for (let col = 0; col < boardSize; col++) {
-            const cell = gridElement.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`);
-            if (board[row][col] === "S") {
-                cell.classList.add("ship");
-            } else if (board[row][col] === "X") {
-                cell.classList.add("hit");
-            } else if (board[row][col] === "O") {
-                cell.classList.add("miss");
+        function createGrid(gridId) {
+            const grid = document.getElementById(gridId);
+            grid.innerHTML = '';
+            
+            for (let row = 0; row < 10; row++) {
+                for (let col = 0; col < 10; col++) {
+                    const cell = document.createElement('div');
+                    cell.classList.add('cell');
+                    cell.dataset.row = row;
+                    cell.dataset.col = col;
+                    
+                    if (gridId === 'player-grid') {
+                        cell.addEventListener('click', () => handleShipPlacement(row, col));
+                        cell.addEventListener('mouseover', () => showShipPreview(row, col));
+                        cell.addEventListener('mouseout', () => removeShipPreview());
+                    } else {
+                        cell.addEventListener('click', () => handleAttack(row, col));
+                    }
+                    
+                    grid.appendChild(cell);
+                }
             }
         }
-    }
-}
 
-function updateBoardInteractivity() {
-    const playerToAttack = currentTurn === "player1" ? "player2" : "player1";
-    const opponentGrid = document.getElementById(`grid-${playerToAttack}`);
-    const currentPlayerGrid = document.getElementById(`grid-${currentTurn}`);
-
-    // Disable clicks on the current player's own board
-    currentPlayerGrid.querySelectorAll(".cell").forEach(cell => {
-        const newCell = cell.cloneNode(true);
-        cell.parentNode.replaceChild(newCell, cell); // Remove any existing listeners
-    });
-
-    // Enable clicks on the opponent's board if it's this player's turn
-    opponentGrid.querySelectorAll(".cell").forEach(cell => {
-        const newCell = cell.cloneNode(true);
-        cell.parentNode.replaceChild(newCell, cell); // Remove any existing listeners
-        if (currentTurn === (playerNum === 0 ? "player1" : "player2")) {
-            newCell.addEventListener("click", handleCellClick);
+        function handleShipPlacement(row, col) {
+            if (gameState.currentShipIndex >= gameState.ships.length) return;
+            
+            const ship = gameState.ships[gameState.currentShipIndex];
+            if (canPlaceShip(row, col, ship.size)) {
+                placeShip(row, col, ship.size);
+                gameState.currentShipIndex++;
+                updateShipPlacementInfo();
+                
+                if (gameState.currentShipIndex >= gameState.ships.length) {
+                    document.getElementById('ready-button').disabled = false;
+                }
+            }
         }
-    });
-}
 
-function handleCellClick(event) {
-    const cell = event.target;
-    const row = parseInt(cell.dataset.row);
-    const col = parseInt(cell.dataset.col);
+        function canPlaceShip(row, col, size) {
+            for (let i = 0; i < size; i++) {
+                const currentRow = gameState.isHorizontal ? row : row + i;
+                const currentCol = gameState.isHorizontal ? col + i : col;
+                
+                if (currentRow >= 10 || currentCol >= 10) return false;
+                if (gameState.board[currentRow][currentCol] !== "~") return false;
+                
+                // Check adjacent cells
+                for (let r = currentRow - 1; r <= currentRow + 1; r++) {
+                    for (let c = currentCol - 1; c <= currentCol + 1; c++) {
+                        if (r >= 0 && r < 10 && c >= 0 && c < 10) {
+                            if (gameState.board[r][c] === "S") return false;
+                        }
+                    }
+                }
+            }
+            return true;
+        }
 
-    // Send the attack to the server
-    socket.emit("attack", { player: currentTurn, row, col });
-}
+        function placeShip(row, col, size) {
+            for (let i = 0; i < size; i++) {
+                const currentRow = gameState.isHorizontal ? row : row + i;
+                const currentCol = gameState.isHorizontal ? col + i : col;
+                
+                gameState.board[currentRow][currentCol] = "S";
+                const cell = document.querySelector(`#player-grid .cell[data-row="${currentRow}"][data-col="${currentCol}"]`);
+                cell.classList.add('ship');
+            }
+        }
 
+        function handleAttack(row, col) {
+            if (!gameState.gameStarted || !gameState.isMyTurn) return;
+            
+            socket.emit('attack', {
+                gameId: gameState.gameId,
+                row,
+                col
+            });
+        }
 
-function handleAttack(attacker, row, col) {
-    if (isGameOver) return;
+        // Socket event handlers
+        socket.on('waitingForOpponent', () => {
+            document.getElementById('game-status').textContent = 'Waiting for opponent...';
+        });
 
-    // Send the attack to the server
-    socket.emit('attack', { player: currentTurn, row: parseInt(row), col: parseInt(col) });
-}
+        socket.on('gameStart', ({ gameId, playerId, opponent }) => {
+            gameState.gameId = gameId;
+            gameState.playerId = playerId;
+            gameState.opponentId = opponent;
+            
+            document.getElementById('waiting-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+            updateShipPlacementInfo();
+        });
 
-function checkWin(player) {
-    const board = playerBoards[player];
-    const allShipsSunk = board.every(row => !row.includes("S"));
+        socket.on('bothPlayersReady', ({ currentTurn }) => {
+            gameState.gameStarted = true;
+            gameState.isMyTurn = currentTurn === gameState.playerId;
+            updateGameStatus();
+        });
 
-    if (allShipsSunk) {
-        resultElement.innerText = `${currentTurn} wins the game!`;
-        console.log("Game end");
-        isGameOver = true;
-        disableBoardClicks();
-    }
-}
+        socket.on('attackResult', ({ row, col, result, nextTurn, isGameOver, winner }) => {
+            const grid = nextTurn === gameState.playerId ? 'player-grid' : 'opponent-grid';
+            const cell = document.querySelector(`#${grid} .cell[data-row="${row}"][data-col="${col}"]`);
+            
+            cell.classList.add(result === 'hit' ? 'hit' : 'miss');
+            // if attacker = opponent do: remove player-grid ship v.v.
 
-function switchTurn() {
-    currentTurn = currentTurn === "player1" ? "player2" : "player1";
-    messageElement.innerText = `${currentTurn}'s turn to attack!`;
-    updateBoardInteractivity();
-}
+            gameState.isMyTurn = nextTurn === gameState.playerId;
+            
+            if (isGameOver) {
+                const winMessage = winner === gameState.playerId ? 'You won!' : 'You lost!';
+                document.getElementById('game-status').textContent = winMessage;
+            } else {
+                updateGameStatus();
+            }
+        });
 
-function disableBoardClicks() {
-    const player1Grid = document.getElementById(`grid-player1`);
-    const player2Grid = document.getElementById(`grid-player2`);
+        socket.on('opponentDisconnected', () => {
+            document.getElementById('game-status').textContent = 'Opponent disconnected. Game ended.';
+            gameState.gameStarted = false;
+        });
 
-    player1Grid.querySelectorAll(".cell").forEach(cell => {
-        const newCell = cell.cloneNode(true);
-        cell.parentNode.replaceChild(newCell, cell);
-    });
-    player2Grid.querySelectorAll(".cell").forEach(cell => {
-        const newCell = cell.cloneNode(true);
-        cell.parentNode.replaceChild(newCell, cell);
-    });
-}
+        function updateGameStatus() {
+            const status = gameState.isMyTurn ? 'Your turn to attack!' : "Opponent's turn";
+            document.getElementById('game-status').textContent = status;
+        }
+
+        function updateShipPlacementInfo() {
+            const info = document.getElementById('ship-placement-info');
+            if (gameState.currentShipIndex < gameState.ships.length) {
+                const ship = gameState.ships[gameState.currentShipIndex];
+                info.textContent = `Place your ${ship.name} (size: ${ship.size})`;
+            } else {
+                info.textContent = 'All ships placed! Click Ready when done.';
+            }
+        }
+
+        function showShipPreview(row, col) {
+            if (gameState.currentShipIndex >= gameState.ships.length) return;
+            
+            const ship = gameState.ships[gameState.currentShipIndex];
+            if (canPlaceShip(row, col, ship.size)) {
+                for (let i = 0; i < ship.size; i++) {
+                    const currentRow = gameState.isHorizontal ? row : row + i;
+                    const currentCol = gameState.isHorizontal ? col + i : col;
+                    
+                    if (currentRow < 10 && currentCol < 10) {
+                        const cell = document.querySelector(`#player-grid .cell[data-row="${currentRow}"][data-col="${currentCol}"]`);
+                        cell.style.backgroundColor = '#aaa';
+                    }
+                }
+            }
+        }
+
+        function removeShipPreview() {
+            document.querySelectorAll('#player-grid .cell').forEach(cell => {
+                if (!cell.classList.contains('ship')) {
+                    cell.style.backgroundColor = '';
+                }
+            });
+        }
+
+        // Initialize the game
+        document.addEventListener('DOMContentLoaded', initializeUI);
