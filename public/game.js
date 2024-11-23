@@ -144,12 +144,33 @@ const socket = io();
             updateGameStatus();
         });
 
-        socket.on('attackResult', ({ row, col, result, nextTurn, isGameOver, winner }) => {
-            const grid = nextTurn === gameState.playerId ? 'player-grid' : 'opponent-grid';
-            const cell = document.querySelector(`#${grid} .cell[data-row="${row}"][data-col="${col}"]`);
-            
-            cell.classList.add(result === 'hit' ? 'hit' : 'miss');
-            // if attacker = opponent do: remove player-grid ship v.v.
+        socket.on('attackResult', ({ row, col, result, nextTurn, isAttacker, isGameOver, winner }) => {
+            if (isAttacker) {
+                const cell = document.querySelector(`#opponent-grid .cell[data-row="${row}"][data-col="${col}"]`);
+                // Force reflow
+                cell.style.display = 'none';
+                cell.offsetHeight; // This triggers reflow
+                cell.style.display = '';
+                
+                requestAnimationFrame(() => {
+                    cell.classList.add(result === 'hit' ? 'hit' : 'miss');
+                });
+            } else {
+                const cell = document.querySelector(`#player-grid .cell[data-row="${row}"][data-col="${col}"]`);
+                // Force reflow
+                cell.style.display = 'none';
+                cell.offsetHeight;
+                cell.style.display = '';
+                
+                requestAnimationFrame(() => {
+                    if (result === 'hit') {
+                        cell.classList.remove('ship');
+                        cell.classList.add('hit');
+                    } else {
+                        cell.classList.add('miss');
+                    }
+                });
+            }
 
             gameState.isMyTurn = nextTurn === gameState.playerId;
             
@@ -192,7 +213,7 @@ const socket = io();
                     
                     if (currentRow < 10 && currentCol < 10) {
                         const cell = document.querySelector(`#player-grid .cell[data-row="${currentRow}"][data-col="${currentCol}"]`);
-                        cell.style.backgroundColor = '#aaa';
+                        cell.style.backgroundColor = '#77afba';
                     }
                 }
             }

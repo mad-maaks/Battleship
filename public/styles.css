@@ -124,12 +124,28 @@ body {
 .cell {
     width: 30px;
     height: 30px;
-    border: 1px solid #ccc;
+    border: 1px solid #2f4f4f;
     cursor: pointer;
+    background-color: #b0c4de;
+    will-change: background-color;
+    contain: layout style paint;
 }
-.ship { background-color: #66666682; }
-.hit { background-color: red; }
-.miss { background-color: blue; }
+
+.ship { 
+    background-color: #77afba !important;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.hit { 
+    background-color: red !important;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.miss { 
+    background-color: blue !important;
+    transition: background-color 0.2s ease-in-out;
+}
+
 .boards-container {
     display: flex;
     justify-content: space-around;

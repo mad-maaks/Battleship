@@ -85,19 +85,25 @@ io.on('connection', (socket) => {
             return; // Cell already attacked
         }
 
-        // Check for win condition
         const isGameOver = !opponentBoard.some(row => row.includes("S"));
-        
-        // Switch turns
         game.currentTurn = opponent;
 
-        // Notify both players of the attack result
-        io.to(Object.keys(game.players)).emit('attackResult', {
+        // Send different information to each player
+        socket.emit('attackResult', {
             row,
             col,
             result,
             nextTurn: game.currentTurn,
-            isGameOver,
+            isAttacker: true,
+            winner: isGameOver ? socket.id : null
+        });
+
+        io.to(opponent).emit('attackResult', {
+            row,
+            col,
+            result,
+            nextTurn: game.currentTurn,
+            isAttacker: false,
             winner: isGameOver ? socket.id : null
         });
 
