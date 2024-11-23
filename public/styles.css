@@ -1,4 +1,3 @@
-/* styles.css */
 body {
     display: flex;
     flex-direction: column;
@@ -10,140 +9,31 @@ body {
     background-size: cover;
 }
 
-/* .container {
-    background-color: rgba(248, 248, 248, 0.7);
-    margin-bottom: 20px;
-    align-items: center;
-}
-
-.boards {
-    display: flex;
-    gap: 20px;
-    margin: 20px;
-}
-
-.board {
-    text-align: center;
-}
-
-.grid {
-    display: grid;
-    grid-template-columns: repeat(10, 40px);
-    grid-template-rows: repeat(10, 40px);
-    gap: 2px;
-}
-
-.cell {
-    width: 40px;
-    height: 40px;
-    background-color: #b0c4de;
-    border: 1px solid #2f4f4f;
-    cursor: pointer;
-}
-
-.cell.hit {
-    background-color: #ff4500;
-}
-
-.cell.miss {
-    background-color: #1e90ff;
-}
-
-.space {
-    margin-bottom: 30px;
-    align-items: center;
-    width: 700px;
-    height: 100px;
-}
-
-.allShips {
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-    margin-left: 20px;
-    margin-right: 20px;
-    background-color: rgba(248, 248, 248, 0);
-}
-
-.ships {
-    position: fixed;
-}
-
-#carrier {
-    right: 38%;
-    bottom: 80px;
-    width: 200px;
-    height: 40px;
-}
-
-#battleship {
-    left: 36%;
-    bottom: 80px;
-    width: 160px;
-    height: 40px;
-}
-
-#cruiser {
-    left: 57%;
-    bottom: 150px;
-    width: 120px;
-    height: 40px;
-}
-
-#submarine {
-    left: 47%;
-    bottom: 150px;
-    width: 120px;
-    height: 40px;
-}
-
-#destroyer {
-    left: 40%;
-    bottom: 150px;
-    width: 80px;
-    height: 40px;
-}
-
-#patrol {
-    left: 35%;
-    bottom: 150px;
-    width: 40px;
-    height: 40px;
-}
-
-.stats {
-    align-items: center;
-} */
-
 .grid {
     display: grid;
     grid-template-columns: repeat(10, 30px);
     gap: 1px;
     margin: 20px;
+    position: relative;
+    overflow: visible;
 }
 .cell {
+    position: relative;
     width: 30px;
     height: 30px;
     border: 1px solid #2f4f4f;
     cursor: pointer;
     background-color: #b0c4de;
-    will-change: background-color;
-    contain: layout style paint;
+    overflow: hidden;
 }
 
-.ship { 
-    background-color: #3f676f !important;
-    transition: background-color 0.2s ease-in-out;
+#player-grid .cell {
+    position: relative;
+    z-index: 1;
 }
 
-.hit { 
-    background-color: red !important;
-    transition: background-color 0.2s ease-in-out;
-}
-
-.miss { 
-    background-color: blue !important;
-    transition: background-color 0.2s ease-in-out;
+#player-grid .ship-container {
+    z-index: 2;
 }
 
 .boards-container {
@@ -154,3 +44,150 @@ body {
     margin: 20px;
 }
 .hidden { display: none; }
+
+.ship-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+    /* transition: all 0.3s ease; */
+}
+
+.ship-container.horizontal {
+    /* height: 30px; */
+    left: 0;
+    top: 0;
+}
+
+.ship-container.vertical {
+    /* width: 30px; */
+    left: 0;
+    top: 0;
+}
+
+.ship-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.ship-container.horizontal img {
+    transform-origin: left center;
+}
+
+.ship-container.vertical img {
+    transform-origin: top;
+}
+
+/* Ship placement preview */
+.ship-preview {
+    background-color: rgba(63, 103, 111, 0.5);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+/* Make cells relative for absolute positioning of ships */
+.cell {
+    position: relative;
+    overflow: visible;
+}
+
+.cell.ship {
+    position: relative;
+}
+
+[class*="-part"] {
+    background-color: rgba(63, 103, 111, 0.3);
+}
+
+/* Hide opponent's ships until hit */
+#opponent-grid .ship-container {
+    display: none;
+}
+
+#opponent-grid .hit .ship-container {
+    display: block;
+}
+
+/* Hit and miss styles */
+.hit {
+    /* background-color: rgba(255, 0, 0, 0.3) !important; */
+    position: relative;
+}
+
+.hit::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 0, 0, 0.4);
+    z-index: 2;
+    pointer-events: none;
+}
+
+.miss {
+    /* background-color: rgba(0, 0, 255, 0.3) !important; */
+    position: relative;
+}
+
+.miss::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 255, 0.4);
+    z-index: 2;
+    pointer-events: none;
+}
+
+.carrier img {
+    object-fit: cover;
+}
+
+.battleship img {
+    object-fit: cover;
+}
+
+.cruiser img {
+    object-fit: cover;
+}
+
+.submarine img {
+    object-fit: cover;
+}
+
+.destroyer img {
+    object-fit: cover;
+}
+
+.patrol img {
+    object-fit: cover;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .ship-container {
+        transform-origin: top left;
+        transform: scale(0.8);
+    }
+    
+    .grid {
+        grid-template-columns: repeat(10, 25px);
+    }
+    
+    .cell {
+        width: 25px;
+        height: 25px;
+    }
+}

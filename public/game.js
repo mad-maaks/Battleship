@@ -27,17 +27,49 @@ let gameState = {
     currentShipIndex: 0,
     isHorizontal: true,
     ships: [
-        { name: "Carrier", size: 5 },
-        { name: "Battleship", size: 4 },
-        { name: "Cruiser", size: 3 },
-        { name: "Submarine", size: 3 },
-        { name: "Destroyer", size: 2 },
-        { name: "Patrol Boat", size: 1 }
+        { 
+            name: "Carrier", 
+            size: 5,
+            imageUrl: '/images/carrier.png',
+            className: 'carrier'
+        },
+        { 
+            name: "Battleship", 
+            size: 4,
+            imageUrl: '/images/battleship.png',
+            className: 'battleship'
+        },
+        { 
+            name: "Cruiser", 
+            size: 3,
+            imageUrl: '/images/cruiser.png',
+            className: 'cruiser'
+        },
+        { 
+            name: "Submarine", 
+            size: 3,
+            imageUrl: '/images/submarine.png',
+            className: 'submarine'
+        },
+        { 
+            name: "Destroyer", 
+            size: 2,
+            imageUrl: '/images/destroyer.png',
+            className: 'destroyer'
+        },
+        { 
+            name: "Patrol Boat", 
+            size: 1,
+            imageUrl: '/images/patrol.png',
+            className: 'patrol'
+        }
     ],
     board: Array(10).fill(null).map(() => Array(10).fill("~")),
     isMyTurn: false,
     gameStarted: false
 };
+
+const ships = gameState.ships;
 
 // Initialize UI
 function initializeUI() {
@@ -124,13 +156,31 @@ function canPlaceShip(row, col, size) {
 }
 
 function placeShip(row, col, size) {
+    const currentShip = gameState.ships[gameState.currentShipIndex];
+    const isHorizontal = gameState.isHorizontal;
+    
+    // Place ship in game state and add images to all cells
     for (let i = 0; i < size; i++) {
-        const currentRow = gameState.isHorizontal ? row : row + i;
-        const currentCol = gameState.isHorizontal ? col + i : col;
+        const currentRow = isHorizontal ? row : row + i;
+        const currentCol = isHorizontal ? col + i : col;
         
         gameState.board[currentRow][currentCol] = "S";
         const cell = document.querySelector(`#player-grid .cell[data-row="${currentRow}"][data-col="${currentCol}"]`);
         cell.classList.add('ship');
+        cell.dataset.shipType = currentShip.className;
+        
+        // Create ship container for each cell
+        const shipContainer = document.createElement('div');
+        shipContainer.className = `ship-container ${currentShip.className} ${isHorizontal ? 'horizontal' : 'vertical'}`;
+        
+        // Create ship image
+        const shipImage = document.createElement('img');
+        shipImage.src = currentShip.imageUrl;
+        shipImage.alt = currentShip.name;
+        shipContainer.appendChild(shipImage);
+        
+        // Add ship container to the cell
+        cell.appendChild(shipContainer);
     }
 }
 
@@ -165,37 +215,43 @@ socket.on('bothPlayersReady', ({ currentTurn }) => {
     updateGameStatus();
 });
 
-socket.on('attackResult', ({ row, col, result, nextTurn, isAttacker, isGameOver, winner }) => {
-    if (isAttacker) {
-        const cell = document.querySelector(`#opponent-grid .cell[data-row="${row}"][data-col="${col}"]`);
-        // Force reflow
-        cell.style.display = 'none';
-        cell.offsetHeight; // This triggers reflow
-        cell.style.display = '';
+socket.on('attackResult', ({ row, col, result, nextTurn, isAttacker, winner }) => {
+    const targetGrid = isAttacker ? '#opponent-grid' : '#player-grid';
+    const cell = document.querySelector(`${targetGrid} .cell[data-row="${row}"][data-col="${col}"]`);
+    
+    if (result === 'hit') {
+        cell.classList.add('hit');
         
-        requestAnimationFrame(() => {
-            cell.classList.add(result === 'hit' ? 'hit' : 'miss');
-        });
-    } else {
-        const cell = document.querySelector(`#player-grid .cell[data-row="${row}"][data-col="${col}"]`);
-        // Force reflow
-        cell.style.display = 'none';
-        cell.offsetHeight;
-        cell.style.display = '';
-        
-        requestAnimationFrame(() => {
-            if (result === 'hit') {
-                cell.classList.remove('ship');
-                cell.classList.add('hit');
-            } else {
-                cell.classList.add('miss');
+        if (isAttacker && !cell.querySelector('.ship-container')) {
+            // Get ship type from cell data
+            const shipType = cell.dataset.shipType;
+            const ship = ships.find(s => s.className === shipType);
+            
+            if (ship) {
+                // Create ship container for hit cell
+                const shipContainer = document.createElement('div');
+                shipContainer.className = `ship-container ${shipType}`;
+                
+                // Determine orientation
+                const isHorizontal = hasAdjacentHit(row, col, true);
+                shipContainer.classList.add(isHorizontal ? 'horizontal' : 'vertical');
+                
+                // Add ship image
+                const shipImage = document.createElement('img');
+                shipImage.src = ship.imageUrl;
+                shipImage.alt = ship.name;
+                shipContainer.appendChild(shipImage);
+                
+                cell.appendChild(shipContainer);
             }
-        });
+        }
+    } else {
+        cell.classList.add('miss');
     }
-
+    
     gameState.isMyTurn = nextTurn === gameState.playerId;
     
-    if (isGameOver) {
+    if (winner) {
         const winMessage = winner === gameState.playerId ? 'You won!' : 'You lost!';
         document.getElementById('game-status').textContent = winMessage;
     } else {
@@ -203,10 +259,20 @@ socket.on('attackResult', ({ row, col, result, nextTurn, isAttacker, isGameOver,
     }
 });
 
-socket.on('opponentDisconnected', () => {
-    document.getElementById('game-status').textContent = 'Opponent disconnected. Game ended.';
-    gameState.gameStarted = false;
-});
+function hasAdjacentHit(row, col, checkHorizontal) {
+    const grid = document.querySelector('#opponent-grid');
+    if (checkHorizontal) {
+        const nextCell = grid.querySelector(`.cell[data-row="${row}"][data-col="${col + 1}"]`);
+        const prevCell = grid.querySelector(`.cell[data-row="${row}"][data-col="${col - 1}"]`);
+        return (nextCell && nextCell.classList.contains('hit')) || 
+               (prevCell && prevCell.classList.contains('hit'));
+    } else {
+        const nextCell = grid.querySelector(`.cell[data-row="${row + 1}"][data-col="${col}"]`);
+        const prevCell = grid.querySelector(`.cell[data-row="${row - 1}"][data-col="${col}"]`);
+        return (nextCell && nextCell.classList.contains('hit')) || 
+               (prevCell && prevCell.classList.contains('hit'));
+    }
+}
 
 function updateGameStatus() {
     const status = gameState.isMyTurn ? 'Your turn to attack!' : "Opponent's turn";
@@ -224,10 +290,13 @@ function updateShipPlacementInfo() {
 }
 
 function showShipPreview(row, col) {
-    if (gameState.currentShipIndex >= gameState.ships.length) return;
+    if (gameState.currentShipIndex >= ships.length) return;
     
-    const ship = gameState.ships[gameState.currentShipIndex];
+    const ship = ships[gameState.currentShipIndex];
     if (canPlaceShip(row, col, ship.size)) {
+        const previewContainer = document.createElement('div');
+        previewContainer.className = 'ship-preview';
+        
         for (let i = 0; i < ship.size; i++) {
             const currentRow = gameState.isHorizontal ? row : row + i;
             const currentCol = gameState.isHorizontal ? col + i : col;
