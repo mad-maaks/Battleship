@@ -99,6 +99,10 @@ function initializeUI() {
         document.getElementById('ready-button').disabled = true;
         document.querySelector('.placement-controls').classList.add('hidden');
     });
+
+    document.getElementById('play-again').addEventListener('click', () => {
+        window.location.reload();
+    });
 }
 
 function createGrid(gridId) {
@@ -229,6 +233,20 @@ function handleAttack(row, col) {
     });
 }
 
+function showGameOver(isWinner) {
+    const gameOverScreen = document.getElementById('game-over-screen');
+    const gameOverTitle = document.getElementById('game-over-title');
+    const gameOverMessage = document.getElementById('game-over-message');
+    
+    gameOverTitle.textContent = isWinner ? 'You Won :D' : 'You Deer :(';
+    gameOverMessage.textContent = isWinner 
+        ? 'Congratulations, deer! You have destroyed all enemy ships!'
+        : 'Your fleet has been destroyed! Nice try, deer.';
+    
+    gameOverScreen.classList.remove('hidden');
+}
+
+
 // Socket event handlers
 socket.on('waitingForOpponent', () => {
     document.getElementById('game-status').textContent = 'Waiting for opponent...';
@@ -309,8 +327,7 @@ socket.on('attackResult', ({ row, col, result, nextTurn, isAttacker, winner }) =
     gameState.isMyTurn = nextTurn === gameState.playerId;
     
     if (winner) {
-        const winMessage = winner === gameState.playerId ? 'You won!' : 'You lost!';
-        document.getElementById('game-status').textContent = winMessage;
+        showGameOver(winner === gameState.playerId);
     } else {
         updateGameStatus();
     }
