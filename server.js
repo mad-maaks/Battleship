@@ -4,7 +4,7 @@ const app = express();
 const http = require('http').createServer(app);
 const io = require('socket.io')(http, {
     cors: {
-        origin: "*",
+        origin: process.env.FRONTEND_URL || "*",
         methods: ["GET", "POST"]
     },
     pingTimeout: 60000,
@@ -35,8 +35,18 @@ class GameState {
     }
 }
 
+let connectedUsers = 0;
+
 io.on('connection', (socket) => {
     console.log('User connected:', socket.id);
+
+    connectedUsers++;
+    console.log(`Connected users: ${connectedUsers}`);
+
+    socket.on('disconnect', () => {
+        connectedUsers--;
+        console.log(`Connected users: ${connectedUsers}`);
+    });
 
     // Handle player joining queue
     socket.on('joinGame', () => {
