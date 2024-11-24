@@ -157,6 +157,3 @@ http.listen(PORT, '0.0.0.0', () => {
     console.log(`- Local: http://localhost:${PORT}`);
     console.log(`- Network: http://${ipAddress}:${PORT}`);
 });
-// http.listen(PORT, () => {
-//     console.log(`Server running on port ${PORT}`);
-// });

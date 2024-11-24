@@ -4,7 +4,6 @@ const socket = io({
     reconnectionDelay: 1000
 });
 
-// Add connection status handling
 socket.on('connect', () => {
     console.log('Connected to server');
     document.getElementById('connection-status').textContent = 'Connected';
@@ -316,21 +315,6 @@ socket.on('attackResult', ({ row, col, result, nextTurn, isAttacker, winner }) =
         updateGameStatus();
     }
 });
-
-function hasAdjacentHit(row, col, checkHorizontal) {
-    const grid = document.querySelector('#opponent-grid');
-    if (checkHorizontal) {
-        const nextCell = grid.querySelector(`.cell[data-row="${row}"][data-col="${col + 1}"]`);
-        const prevCell = grid.querySelector(`.cell[data-row="${row}"][data-col="${col - 1}"]`);
-        return (nextCell && nextCell.classList.contains('hit')) || 
-               (prevCell && prevCell.classList.contains('hit'));
-    } else {
-        const nextCell = grid.querySelector(`.cell[data-row="${row + 1}"][data-col="${col}"]`);
-        const prevCell = grid.querySelector(`.cell[data-row="${row - 1}"][data-col="${col}"]`);
-        return (nextCell && nextCell.classList.contains('hit')) || 
-               (prevCell && prevCell.classList.contains('hit'));
-    }
-}
 
 function updateGameStatus() {
     const status = gameState.isMyTurn ? 'Your turn to attack!' : "Opponent's turn";
