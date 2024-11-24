@@ -355,7 +355,7 @@ function showShipPreview(row, col) {
             
             if (currentRow < 10 && currentCol < 10) {
                 const cell = document.querySelector(`#player-grid .cell[data-row="${currentRow}"][data-col="${currentCol}"]`);
-                cell.style.backgroundColor = '#3f676f';
+                cell.style.backgroundColor = 'rgba(40, 71, 111, 0.271)';
             }
         }
     }

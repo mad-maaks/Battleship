@@ -2,102 +2,79 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    font-family: Arial, sans-serif;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: linear-gradient(135deg, #1a2a3d 0%, #2c3e50 100%);
     background-image: url('images/bg1.jpg');
     background-repeat: no-repeat;
     background-attachment: fixed;
     background-size: cover;
-}
-
-.grid {
-    display: grid;
-    grid-template-columns: repeat(10, 30px);
-    gap: 1px;
-    margin: 20px;
-    position: relative;
-    overflow: visible;
-}
-.cell {
-    position: relative;
-    width: 30px;
-    height: 30px;
-    border: 1px solid #2f4f4f;
-    cursor: pointer;
-    background-color: #b0c4de;
-    overflow: hidden;
-}
-
-#player-grid .cell {
-    position: relative;
-    z-index: 1;
-}
-
-#player-grid .ship-container {
-    z-index: 2;
+    color: #ecf0f1;
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px;
 }
 
 .boards-container {
     display: flex;
-    justify-content: space-around;
-}
-.placement-controls {
-    margin: 20px;
-}
-.hidden { display: none; }
-
-.ship-container {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: 1;
+    gap: 40px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 30px;
+    padding: 20px;
 }
 
-.ship-container img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+.boards-container > div {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+    transition: transform 0.3s ease;
 }
 
-/* Ship placement preview */
-.ship-preview {
-    background-color: rgba(63, 103, 111, 0.5);
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
+.boards-container > div:hover {
+    transform: translateY(-5px);
 }
 
-/* Make cells relative for absolute positioning of ships */
+.boards-container h2 {
+    color: #ecf0f1;
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 1.5em;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(10, 35px);
+    gap: 2px;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
 .cell {
+    width: 35px;
+    height: 35px;
+    border: none;
+    background: rgba(176, 196, 222, 0.1);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: 4px;
     position: relative;
-    overflow: visible;
+    overflow: hidden;
 }
 
-.cell.ship {
-    position: relative;
+.cell:hover {
+    background: rgba(40, 71, 111, 0.271);
+    transform: scale(1.05);
 }
 
-[class*="-part"] {
-    background-color: rgba(63, 103, 111, 0.3);
-}
-
-/* Hide opponent's ships until hit */
-#opponent-grid .ship-container {
-    display: none;
-}
-
-#opponent-grid .hit .ship-container {
-    display: block;
-}
-
-/* Hit and miss styles */
-.hit {
-    position: relative;
+#player-grid .cell.ship {
+    background: rgba(63, 103, 111, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .hit::after {
@@ -107,13 +84,9 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(255, 0, 0, 0.4);
+    background: rgba(231, 76, 60, 0.6);
     z-index: 2;
-    pointer-events: none;
-}
-
-.miss {
-    position: relative;
+    animation: hitPulse 1s ease-out;
 }
 
 .miss::after {
@@ -123,48 +96,163 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 255, 0.4);
+    background: rgba(41, 128, 185, 0.6);
     z-index: 2;
+    animation: missPulse 1s ease-out;
+}
+
+@keyframes hitPulse {
+    0% { transform: scale(0); opacity: 1; }
+    100% { transform: scale(1); opacity: 0.6; }
+}
+
+@keyframes missPulse {
+    0% { transform: scale(0); opacity: 1; }
+    100% { transform: scale(1); opacity: 0.6; }
+}
+
+.placement-controls {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 20px;
+    border-radius: 10px;
+    margin: 20px auto;
+    text-align: center;
+    max-width: 400px;
+    backdrop-filter: blur(10px);
+}
+
+#ship-placement-info {
+    color: #ecf0f1;
+    margin-bottom: 15px;
+    font-size: 1.1em;
+}
+
+button {
+    background: #3498db;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 5px;
+    box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+}
+
+button:hover {
+    background: #2980b9;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+}
+
+button:disabled {
+    background: #95a5a6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+#connection-status {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.9em;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(5px);
+}
+
+#game-status {
+    text-align: center;
+    padding: 15px;
+    margin: 20px 0;
+    font-size: 1.2em;
+    color: #ecf0f1;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    animation: statusPulse 2s infinite;
+}
+
+@keyframes statusPulse {
+    0% { opacity: 0.8; }
+    50% { opacity: 1; }
+    100% { opacity: 0.8; }
+}
+
+.ship-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    transition: transform 0.3s ease;
+}
+
+.ship-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: brightness(1.2) contrast(1.1);
+}
+
+.ship-preview {
+    background: rgba(46, 204, 113, 0.3);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     pointer-events: none;
+    border-radius: 4px;
+    animation: previewPulse 1.5s infinite;
 }
 
-.carrier img {
-    object-fit: cover;
+@keyframes previewPulse {
+    0% { opacity: 0.4; }
+    50% { opacity: 0.7; }
+    100% { opacity: 0.4; }
 }
 
-.battleship img {
-    object-fit: cover;
-}
-
-.cruiser img {
-    object-fit: cover;
-}
-
-.submarine img {
-    object-fit: cover;
-}
-
-.destroyer img {
-    object-fit: cover;
-}
-
-.patrol img {
-    object-fit: cover;
-}
-
-/* Responsive adjustments */
 @media (max-width: 768px) {
-    .ship-container {
-        transform-origin: top left;
-        transform: scale(0.8);
+    .boards-container {
+        gap: 20px;
     }
-    
+
+    .grid {
+        grid-template-columns: repeat(10, 30px);
+    }
+
+    .cell {
+        width: 30px;
+        height: 30px;
+    }
+
+    .boards-container > div {
+        padding: 15px;
+    }
+
+    button {
+        padding: 10px 20px;
+        font-size: 0.9em;
+    }
+}
+
+@media (max-width: 480px) {
     .grid {
         grid-template-columns: repeat(10, 25px);
     }
-    
+
     .cell {
         width: 25px;
         height: 25px;
+    }
+
+    .boards-container > div {
+        padding: 10px;
     }
 }
