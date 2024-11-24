@@ -65,7 +65,8 @@ let gameState = {
     ],
     board: Array(10).fill(null).map(() => Array(10).fill("~")),
     isMyTurn: false,
-    gameStarted: false
+    gameStarted: false,
+    placementHistory: []
 };
 
 const ships = gameState.ships;
@@ -103,6 +104,8 @@ function initializeUI() {
     document.getElementById('play-again').addEventListener('click', () => {
         window.location.reload();
     });
+
+    document.getElementById('undo-button').addEventListener('click', undoLastPlacement);
 }
 
 function createGrid(gridId) {
@@ -134,9 +137,25 @@ function handleShipPlacement(row, col) {
     
     const ship = gameState.ships[gameState.currentShipIndex];
     if (canPlaceShip(row, col, ship.size)) {
+        const placementInfo = {
+            shipIndex: gameState.currentShipIndex,
+            positions: [],
+            isHorizontal: gameState.isHorizontal
+        };
+
+        for (let i = 0; i < ship.size; i++) {
+            const currentRow = gameState.isHorizontal ? row : row + i;
+            const currentCol = gameState.isHorizontal ? col + i : col;
+            placementInfo.positions.push({row: currentRow, col: currentCol});
+        }
+
         placeShip(row, col, ship.size);
+        gameState.placementHistory.push(placementInfo);
         gameState.currentShipIndex++;
         updateShipPlacementInfo();
+
+        document.getElementById('undo-button').disabled = false;
+        document.getElementById('ready-button').disabled = gameState.currentShipIndex < gameState.ships.length;
         
         if (gameState.currentShipIndex >= gameState.ships.length) {
             document.getElementById('ready-button').disabled = false;
@@ -221,6 +240,35 @@ function placeShip(row, col, size) {
         shipContainer.appendChild(shipImage);
         cell.appendChild(shipContainer);
     }
+}
+
+function undoLastPlacement() {
+    if (gameState.placementHistory.length === 0) return;
+
+    const lastPlacement = gameState.placementHistory.pop();
+
+    lastPlacement.positions.forEach(({row, col}) => {
+        gameState.board[row][col] = "~";
+
+        const cell = document.querySelector(`#player-grid .cell[data-row="${row}"][data-col="${col}"]`);
+        cell.classList.remove('ship');
+        cell.removeAttribute('data-ship-type');
+        cell.removeAttribute('data-ship-index');
+        cell.removeAttribute('data-ship-size');
+        cell.removeAttribute('data-ship-orientation');
+
+        const shipContainer = cell.querySelector('.ship-container');
+        if (shipContainer) {
+            cell.removeChild(shipContainer);
+        }
+    });
+
+    gameState.currentShipIndex--;
+
+    updateShipPlacementInfo();
+    document.getElementById('ready-button').disabled = true;
+
+    document.getElementById('undo-button').disabled = gameState.placementHistory.length === 0;
 }
 
 function handleAttack(row, col) {
@@ -362,7 +410,7 @@ function showShipPreview(row, col) {
             
             if (currentRow < 10 && currentCol < 10) {
                 const cell = document.querySelector(`#player-grid .cell[data-row="${currentRow}"][data-col="${currentCol}"]`);
-                cell.style.backgroundColor = 'rgba(40, 71, 111, 0.271)';
+                cell.style.backgroundColor = 'rgba(35, 86, 125, 0.159)';
             }
         }
     }
