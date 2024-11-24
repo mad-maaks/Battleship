@@ -8,19 +8,60 @@
     <link rel="icon" href="data:;base64,iVBORw0KGgo=">
 </head>
 <body>
-    <div id="waiting-screen">
+    <div id="welcome-screen">
+        <h1>Battleship</h1>
+        
+        <div class="game-instructions">
+            <h2>How to Play</h2>
+            <ul class="instruction-list">
+                <li>Start by placing your ships on your board</li>
+                <li>Right-click to rotate ships during placement</li>
+                <li>Ships cannot touch each other (including diagonally)</li>
+                <li>Once both players have placed their ships, take turns attacking</li>
+                <li>Red marks indicate hits, blue marks indicate misses</li>
+                <li>Sink all enemy ships to win!</li>
+            </ul>
+        </div>
+        
+        <div class="ships-list">
+            <div class="ship-info">
+                <img src="/images/carrier.png" alt="Carrier">
+                <span>Carrier (5 spaces)</span>
+            </div>
+            <div class="ship-info">
+                <img src="/images/battleship.png" alt="Battleship">
+                <span>Battleship (4 spaces)</span>
+            </div>
+            <div class="ship-info">
+                <img src="/images/cruiser.png" alt="Cruiser">
+                <span>Cruiser (3 spaces)</span>
+            </div>
+            <div class="ship-info">
+                <img src="/images/submarine.png" alt="Submarine">
+                <span>Submarine (3 spaces)</span>
+            </div>
+            <div class="ship-info">
+                <img src="/images/destroyer.png" alt="Destroyer">
+                <span>Destroyer (2 spaces)</span>
+            </div>
+            <div class="ship-info">
+                <img src="/images/patrol.png" alt="Patrol Boat">
+                <span>Patrol Boat (1 space)</span>
+            </div>
+        </div>
+    
         <button id="join-game">Join Game</button>
     </div>
-
+    
     <div id="connection-status"></div>
     
     <div id="game-screen" class="hidden">
         <div class="placement-controls">
             <div id="ship-placement-info"></div>
             <button id="rotate-ship">Rotate Ship</button>
-            <button id="ready-button">Ready</button>
+            <button id="ready-button" disabled>Ready</button>
         </div>
-        
+    
         <div class="boards-container">
             <div>
                 <h2>Your Board</h2>
@@ -31,7 +72,7 @@
                 <div id="opponent-grid" class="grid"></div>
             </div>
         </div>
-        
+    
         <div id="game-status"></div>
     </div>
 

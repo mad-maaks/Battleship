@@ -79,7 +79,13 @@ function initializeUI() {
     document.getElementById('join-game').addEventListener('click', () => {
         socket.emit('joinGame');
         document.getElementById('join-game').disabled = true;
+        document.getElementById('welcome-screen').classList.add('hidden');
+        document.getElementById('game-screen').classList.remove('hidden');
     });
+
+    document.getElementById('rotate-ship').addEventListener('click', () => {
+        gameState.isHorizontal = !gameState.isHorizontal;
+    })
 
     document.addEventListener('contextmenu', (event) => {
         event.preventDefault();
