@@ -17,7 +17,7 @@ app.use(express.static('public'));
 // Game state storage
 const games = new Map();
 const playerQueue = [];
-const playerGameMap = new Map();
+const playerGameMap = new Map(); // Track which game each player is in
 
 class GameState {
     constructor(player1Id, player2Id) {
@@ -39,13 +39,14 @@ class GameState {
 let connectedUsers = 0;
 
 function createNewGame(player1Id, player2Id) {
-    const gameId = `game-${Date.now()}-${Math.random().toString(36).substr(2,9)}`;
+    const gameId = `game-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const gameState = new GameState(player1Id, player2Id);
     games.set(gameId, gameState);
-
+    
+    // Map players to their game
     playerGameMap.set(player1Id, gameId);
     playerGameMap.set(player2Id, gameId);
-
+    
     return gameId;
 }
 
@@ -53,24 +54,29 @@ function matchPlayers() {
     while (playerQueue.length >= 2) {
         const player1Id = playerQueue.shift();
         const player2Id = playerQueue.shift();
-
+        
+        // Create new game instance
         const gameId = createNewGame(player1Id, player2Id);
-
+        
+        // Notify both players
         io.to(player1Id).emit('gameStart', { gameId, playerId: player1Id, opponent: player2Id });
         io.to(player2Id).emit('gameStart', { gameId, playerId: player2Id, opponent: player1Id });
     }
 }
 
-function cleanupPlayer(playerId){
+function cleanupPlayer(playerId) {
+    // Remove from queue if present
     const queueIndex = playerQueue.indexOf(playerId);
     if (queueIndex > -1) {
         playerQueue.splice(queueIndex, 1);
     }
-
+    
+    // Clean up game if player was in one
     const gameId = playerGameMap.get(playerId);
     if (gameId) {
         const game = games.get(gameId);
         if (game) {
+            // Notify opponent
             const opponent = Object.keys(game.players).find(id => id !== playerId);
             if (opponent) {
                 io.to(opponent).emit('opponentDisconnected');
@@ -78,7 +84,7 @@ function cleanupPlayer(playerId){
             // Clean up game
             games.delete(gameId);
         }
-        // Remove game mapping
+        // Remove game mapping for both players
         const opponent = Object.keys(game.players).find(id => id !== playerId);
         if (opponent) playerGameMap.delete(opponent);
         playerGameMap.delete(playerId);
@@ -87,9 +93,8 @@ function cleanupPlayer(playerId){
 
 io.on('connection', (socket) => {
     console.log('User connected:', socket.id);
-
     connectedUsers++;
-    console.log(`Connected users: ${connectedUsers}`);
+    io.emit('playerCount', connectedUsers);
 
     socket.on('disconnect', () => {
         connectedUsers--;
@@ -98,7 +103,6 @@ io.on('connection', (socket) => {
         console.log(`User disconnected. Connected users: ${connectedUsers}`);
     });
 
-    // Handle player joining queue
     socket.on('joinGame', () => {
         // Add player to queue
         playerQueue.push(socket.id);
@@ -108,7 +112,6 @@ io.on('connection', (socket) => {
         matchPlayers();
     });
 
-    // Handle ship placement
     socket.on('placeShips', ({ gameId, board }) => {
         const game = games.get(gameId);
         if (!game) return;
@@ -124,7 +127,6 @@ io.on('connection', (socket) => {
         }
     });
 
-    // Handle attacks
     socket.on('attack', ({ gameId, row, col }) => {
         const game = games.get(gameId);
         if (!game || !game.gameStarted || game.currentTurn !== socket.id) return;
@@ -174,6 +176,7 @@ io.on('connection', (socket) => {
     });
 });
 
+// Error handling
 process.on('uncaughtException', (error) => {
     console.error('Uncaught Exception:', error);
 });
