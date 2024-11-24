@@ -158,8 +158,8 @@ function canPlaceShip(row, col, size) {
 function placeShip(row, col, size) {
     const currentShip = gameState.ships[gameState.currentShipIndex];
     const isHorizontal = gameState.isHorizontal;
-    
-    // Place ship in game state and add images to all cells
+    const cellSize = 30; // Match your CSS cell size
+
     for (let i = 0; i < size; i++) {
         const currentRow = isHorizontal ? row : row + i;
         const currentCol = isHorizontal ? col + i : col;
@@ -168,18 +168,48 @@ function placeShip(row, col, size) {
         const cell = document.querySelector(`#player-grid .cell[data-row="${currentRow}"][data-col="${currentCol}"]`);
         cell.classList.add('ship');
         cell.dataset.shipType = currentShip.className;
+        cell.dataset.shipIndex = i;
+        cell.dataset.shipSize = size;
+        cell.dataset.shipOrientation = isHorizontal ? 'horizontal' : 'vertical';
         
         // Create ship container for each cell
         const shipContainer = document.createElement('div');
         shipContainer.className = `ship-container ${currentShip.className} ${isHorizontal ? 'horizontal' : 'vertical'}`;
         
+        // Set container size for each segment
+        shipContainer.style.width = `${cellSize}px`;
+        shipContainer.style.height = `${cellSize}px`;
+        shipContainer.style.position = 'absolute';
+        shipContainer.style.zIndex = '2';
+        
+        // Add custom attributes for positioning the background image
+        shipContainer.dataset.partIndex = i;
+        shipContainer.dataset.totalParts = size;
+        
         // Create ship image
         const shipImage = document.createElement('img');
         shipImage.src = currentShip.imageUrl;
         shipImage.alt = currentShip.name;
-        shipContainer.appendChild(shipImage);
         
-        // Add ship container to the cell
+        if (isHorizontal) {
+            shipImage.style.width = `${size * 100}%`;
+            shipImage.style.height = '100%';
+            shipImage.style.left = `${-i * 100}%`;
+            shipImage.style.top = '0';
+            shipImage.style.transform = 'none';
+        } else {
+            shipImage.style.width = `${size * 100}%`;
+            shipImage.style.height = '100%';
+            shipImage.style.top = `${-i * 100}%`;
+            shipImage.style.left = '0';
+            shipImage.style.transform = 'rotate(90deg) translate(0, -100%)';
+            shipImage.style.transformOrigin = 'top left';
+        }
+        
+        shipImage.style.position = 'absolute';
+        shipImage.style.objectFit = 'cover';
+        
+        shipContainer.appendChild(shipImage);
         cell.appendChild(shipContainer);
     }
 }
@@ -222,26 +252,48 @@ socket.on('attackResult', ({ row, col, result, nextTurn, isAttacker, winner }) =
     if (result === 'hit') {
         cell.classList.add('hit');
         
-        if (isAttacker && !cell.querySelector('.ship-container')) {
-            // Get ship type from cell data
+        if (isAttacker) {
             const shipType = cell.dataset.shipType;
-            const ship = ships.find(s => s.className === shipType);
+            const shipIndex = parseInt(cell.dataset.shipIndex);
+            const shipSize = parseInt(cell.dataset.shipSize);
+            const isHorizontal = cell.dataset.shipOrientation === 'horizontal';
+            const cellSize = 30;
             
+            // Create ship container for the hit cell
+            const shipContainer = document.createElement('div');
+            shipContainer.className = `ship-container ${shipType} ${isHorizontal ? 'horizontal' : 'vertical'}`;
+            
+            shipContainer.style.width = `${cellSize}px`;
+            shipContainer.style.height = `${cellSize}px`;
+            shipContainer.style.position = 'absolute';
+            shipContainer.style.zIndex = '2';
+            
+            // Find the ship definition
+            const ship = ships.find(s => s.className === shipType);
             if (ship) {
-                // Create ship container for hit cell
-                const shipContainer = document.createElement('div');
-                shipContainer.className = `ship-container ${shipType}`;
-                
-                // Determine orientation
-                const isHorizontal = hasAdjacentHit(row, col, true);
-                shipContainer.classList.add(isHorizontal ? 'horizontal' : 'vertical');
-                
-                // Add ship image
                 const shipImage = document.createElement('img');
                 shipImage.src = ship.imageUrl;
                 shipImage.alt = ship.name;
-                shipContainer.appendChild(shipImage);
                 
+                if (isHorizontal) {
+                    shipImage.style.width = `${shipSize * 100}%`;
+                    shipImage.style.height = '100%';
+                    shipImage.style.left = `${-shipIndex * 100}%`;
+                    shipImage.style.top = '0';
+                    shipImage.style.transform = 'none';
+                } else {
+                    shipImage.style.width = '100%';
+                    shipImage.style.height = `${shipSize * 100}%`;
+                    shipImage.style.top = `${-shipIndex * 100}%`;
+                    shipImage.style.left = '0';
+                    shipImage.style.transform = 'rotate(90deg) translate(0, -100%)';
+                    shipImage.style.transformOrigin = 'top left';
+                }
+                
+                shipImage.style.position = 'absolute';
+                shipImage.style.objectFit = 'cover';
+                
+                shipContainer.appendChild(shipImage);
                 cell.appendChild(shipContainer);
             }
         }

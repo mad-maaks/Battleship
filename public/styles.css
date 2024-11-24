@@ -53,33 +53,12 @@ body {
     height: 100%;
     pointer-events: none;
     z-index: 1;
-    /* transition: all 0.3s ease; */
-}
-
-.ship-container.horizontal {
-    /* height: 30px; */
-    left: 0;
-    top: 0;
-}
-
-.ship-container.vertical {
-    /* width: 30px; */
-    left: 0;
-    top: 0;
 }
 
 .ship-container img {
     width: 100%;
     height: 100%;
-    object-fit: contain;
-}
-
-.ship-container.horizontal img {
-    transform-origin: left center;
-}
-
-.ship-container.vertical img {
-    transform-origin: top;
+    object-fit: cover;
 }
 
 /* Ship placement preview */
@@ -118,7 +97,6 @@ body {
 
 /* Hit and miss styles */
 .hit {
-    /* background-color: rgba(255, 0, 0, 0.3) !important; */
     position: relative;
 }
 
@@ -135,7 +113,6 @@ body {
 }
 
 .miss {
-    /* background-color: rgba(0, 0, 255, 0.3) !important; */
     position: relative;
 }
 
