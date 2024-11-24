@@ -10,8 +10,6 @@ const io = require('socket.io')(http, {
     pingTimeout: 60000,
     pingInterval: 25000
 });
-
-const path = require('path');
 const ip = require('ip');
 
 app.use(express.static('public'));
@@ -150,10 +148,9 @@ process.on('unhandledRejection', (reason, promise) => {
     console.error('Unhandled Rejection:', reason);
 });
 
-const PORT = process.env.PORT || 3000;
-http.listen(PORT, '0.0.0.0', () => {
+http.listen(config.PORT, '0.0.0.0', () => {
     const ipAddress = ip.address();
     console.log(`Server running on:`);
-    console.log(`- Local: http://localhost:${PORT}`);
-    console.log(`- Network: http://${ipAddress}:${PORT}`);
+    console.log(`- Local: http://localhost:${config.PORT}`);
+    console.log(`- Network: http://${ipAddress}:${config.PORT}`);
 });

@@ -311,6 +311,38 @@ button:disabled {
     animation: previewPulse 1.5s infinite;
 }
 
+.instructions-container {
+    background-color: #293b50b0;
+    border-radius: 15px;
+}
+
+.sources {
+    position: relative;
+    display: flex;
+    border-bottom: 1px dotted black;
+}
+
+.sources .sourcetitle {
+    padding-right: 10px;
+}
+  
+.sources .sourcestext {
+    visibility: hidden;
+    width: 400px;
+    background-color: rgba(204, 204, 204, 0.225);
+    color: #fff;
+    text-align: center;
+    padding: 3px 0;
+    border-radius: 6px;
+   
+    position: absolute;
+    z-index: 1;
+}
+  
+.sources:hover .sourcestext {
+    visibility: visible;
+}
+
 .hidden {
     display: none !important;
 }
@@ -334,7 +366,7 @@ button:disabled {
     .ships-list {
         grid-template-columns: 1fr;
     }
-    
+
     .boards-container {
         gap: 20px;
     }
