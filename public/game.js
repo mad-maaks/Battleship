@@ -75,12 +75,14 @@ const ships = gameState.ships;
 function initializeUI() {
     createGrid('player-grid');
     createGrid('opponent-grid');
+    const buttonAudio = new Audio('/audio/button.wav');
     
     document.getElementById('join-game').addEventListener('click', () => {
         socket.emit('joinGame');
         document.getElementById('join-game').disabled = true;
         document.getElementById('welcome-screen').classList.add('hidden');
         document.getElementById('game-screen').classList.remove('hidden');
+        buttonAudio.play();
     });
 
     document.getElementById('rotate-ship').addEventListener('click', () => {
@@ -93,19 +95,24 @@ function initializeUI() {
     });
 
     document.getElementById('ready-button').addEventListener('click', () => {
+        const readyAudio = new Audio('/audio/ready.wav');
         socket.emit('placeShips', {
             gameId: gameState.gameId,
             board: gameState.board
         });
         document.getElementById('ready-button').disabled = true;
         document.querySelector('.placement-controls').classList.add('hidden');
+        readyAudio.play();
     });
 
     document.getElementById('play-again').addEventListener('click', () => {
         window.location.reload();
+        buttonAudio.play();
     });
 
-    document.getElementById('undo-button').addEventListener('click', undoLastPlacement);
+    document.getElementById('undo-button').addEventListener('click', () => {
+        undoLastPlacement();
+    });
 }
 
 function createGrid(gridId) {
@@ -150,6 +157,7 @@ function handleShipPlacement(row, col) {
         }
 
         placeShip(row, col, ship.size);
+        new Audio('/audio/placeship.wav').play();
         gameState.placementHistory.push(placementInfo);
         gameState.currentShipIndex++;
         updateShipPlacementInfo();
@@ -285,7 +293,8 @@ function showGameOver(isWinner) {
     const gameOverScreen = document.getElementById('game-over-screen');
     const gameOverTitle = document.getElementById('game-over-title');
     const gameOverMessage = document.getElementById('game-over-message');
-    
+
+    isWinner ? new Audio('/audio/win.wav').play() : new Audio('/audio/lose.wav').play();
     gameOverTitle.textContent = isWinner ? 'You Won :D' : 'You Deer :(';
     gameOverMessage.textContent = isWinner 
         ? 'Congratulations, deer! You have destroyed all enemy ships!'
@@ -319,9 +328,12 @@ socket.on('bothPlayersReady', ({ currentTurn }) => {
 socket.on('attackResult', ({ row, col, result, nextTurn, isAttacker, winner }) => {
     const targetGrid = isAttacker ? '#opponent-grid' : '#player-grid';
     const cell = document.querySelector(`${targetGrid} .cell[data-row="${row}"][data-col="${col}"]`);
+    const hitAudio = new Audio('/audio/hit.wav');
+    const missAudio = new Audio('/audio/miss.wav');
     
     if (result === 'hit') {
         cell.classList.add('hit');
+        hitAudio.play();
         
         if (isAttacker) {
             const shipType = cell.dataset.shipType;
@@ -370,6 +382,7 @@ socket.on('attackResult', ({ row, col, result, nextTurn, isAttacker, winner }) =
         }
     } else {
         cell.classList.add('miss');
+        missAudio.play();
     }
     
     gameState.isMyTurn = nextTurn === gameState.playerId;
