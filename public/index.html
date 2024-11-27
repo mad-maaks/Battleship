@@ -1,15 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Battleship Game</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="icon" type="image/x-icon" href="images/gaming.png">
+
 <body>
     <div id="welcome-screen">
         <h1>Battleship</h1>
-        
+
         <div class="game-instructions">
             <h2>How to Play</h2>
             <ul class="instruction-list">
@@ -21,7 +23,7 @@
                 <li>Sink all enemy ships to win!</li>
             </ul>
         </div>
-        
+
         <div class="ships-list">
             <div class="ship-info">
                 <img src="/images/carrier.png" alt="Carrier">
@@ -48,12 +50,12 @@
                 <span>Patrol Boat (1 space)</span>
             </div>
         </div>
-    
+
         <button id="join-game">Join Game</button>
     </div>
-    
+
     <div id="connection-status"></div>
-    
+
     <div id="game-screen" class="hidden">
         <div class="placement-controls">
             <div id="ship-placement-info"></div>
@@ -61,7 +63,7 @@
             <button id="undo-button" disabled>Undo Last Placement</button>
             <button id="ready-button" disabled>Ready</button>
         </div>
-    
+
         <div class="boards-container">
             <div class="grid-container">
                 <h2>Your Board</h2>
@@ -72,7 +74,7 @@
                 <div id="opponent-grid" class="grid"></div>
             </div>
         </div>
-    
+
         <div id="game-status"></div>
 
         <div class="instructions-container">
@@ -100,15 +102,15 @@
 
     <div class="sources">
         <p class="sourcetitle">Sources</p>
-        <div>
-            <span class="sourcestext">
-                <a href="https://www.flaticon.com/free-icons/gaming" title="gaming icons">Gaming icons created by Freepik - Flaticon</a>
-                <a href="https://mixkit.co/free-sound-effects/click/">Game sound effects from Mixkit</a>
-            </span>
-        </div>
+        <span class="sourcestext">
+            <a href="https://www.flaticon.com/free-icons/gaming" title="gaming icons">Gaming icons created by Freepik -
+                Flaticon</a><br />
+            <a href="https://mixkit.co/free-sound-effects/click/">Game sound effects from Mixkit</a>
+        </span>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script src="game.js"></script>
 </body>
+
 </html>

@@ -106,8 +106,8 @@ function initializeUI() {
     });
 
     document.getElementById('play-again').addEventListener('click', () => {
-        window.location.reload();
         buttonAudio.play();
+        window.location.reload(); 
     });
 
     document.getElementById('undo-button').addEventListener('click', () => {

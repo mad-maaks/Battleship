@@ -319,7 +319,9 @@ button:disabled {
 .sources {
     position: relative;
     display: flex;
+    flex-direction: column;
     border-bottom: 1px dotted black;
+    align-items: center;
 }
 
 .sources .sourcetitle {
@@ -338,9 +340,13 @@ button:disabled {
     text-align: center;
     padding: 3px 0;
     border-radius: 6px;
-   
-    position: absolute;
+    position: absolute; /* change to 'position: relative' if you want it to show below */
     z-index: 1;
+    backdrop-filter: blur(10px);
+}
+
+.sources .sourcestext a {
+    color: white;
 }
   
 .sources:hover .sourcestext {
