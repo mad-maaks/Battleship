@@ -10,7 +10,7 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
+  "description": "Execution intructions\r 1. Make sure to install Node.js https://nodejs.org/en/download/package-manager\r 2. At the terminal of the directory (.../Battleship-main) run ‘npm init -y’\r 3. Then, run ‘npm i express socket.io dotenv ip’\r 4. Once the modules have been installed, run ‘npm start’\r 5. Links for the local host and network should show in the terminal",
   "dependencies": {
     "dotenv": "^16.4.5",
     "express": "^4.21.1",
