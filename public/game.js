@@ -453,6 +453,37 @@ function adjustForDevice() {
     }
 }
 
+// Handle the "How To Play" Modal
+document.addEventListener("DOMContentLoaded", () => {
+    const howToPlayButtons = document.querySelectorAll(".help");
+    const instructionsModal = document.querySelector(".instructions");
+    const returnButton = instructionsModal.querySelector(".return-button button");
+
+    function showModal() {
+        instructionsModal.classList.remove("hide");
+        instructionsModal.classList.add("show");
+    }
+
+    function hideModal() {
+        instructionsModal.classList.remove("show");
+        instructionsModal.classList.add("hide");
+
+        setTimeout(() => {
+            instructionsModal.style.display = "none";
+        }, 300); 
+    }
+
+    howToPlayButtons.forEach(button => {
+        button.addEventListener("click", () => {
+            instructionsModal.style.display = "flex"; 
+            setTimeout(showModal, 10); 
+        });
+    });
+
+    returnButton.addEventListener("click", hideModal);
+});
+
+
 // Add responsive layout
 window.addEventListener('resize', adjustForDevice);
 
