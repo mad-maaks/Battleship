@@ -9,21 +9,43 @@
     <link rel="icon" type="image/x-icon" href="images/gaming.png">
 
 <body>
+    
+    <!-- Welcome Screen -->
     <div id="welcome-screen">
-        <h1>Battleship</h1>
+        <img src="images/jk-title.png" alt="Game Title" class="website-image">
 
-        <div class="game-instructions">
-            <h2>How to Play</h2>
-            <ul class="instruction-list">
-                <li>Start by placing your ships on your board</li>
-                <li>Right-click to rotate ships during placement</li>
-                <li>Ships cannot touch each other (including diagonally)</li>
-                <li>Once both players have placed their ships, take turns attacking</li>
-                <li>Red marks indicate hits, blue marks indicate misses</li>
-                <li>Sink all enemy ships to win!</li>
-            </ul>
+        <div class="buttons">
+            <button id="join-game" class="box">Join Game</button>
+            <button class="box help">How To Play</button>
+        </div>
+    
+        <div class="ships">
+            <img src="images/boat1.png" alt="ship" class="ship1">
+            <img src="images/boat2.png" alt="ship" class="ship2">
         </div>
 
+        <div class="sources">
+            <p class="sourcetitle">Sources</p>
+            <span class="sourcestext">
+                <a href="https://www.flaticon.com/free-icons/gaming" title="gaming icons">Gaming icons created by Freepik -
+                    Flaticon</a><br />
+                <a href="https://mixkit.co/free-sound-effects/click/">Game sound effects from Mixkit</a>
+            </span>
+        </div>
+     </div>
+
+     <div class="instructions">
+        <ul class="instruction-list">
+            <h2>How to Play</h2>
+            <li>Start by placing your ships on your board</li>
+            <li>Right-click to rotate ships during placement</li>
+            <li>Ships cannot touch each other (including diagonally)</li>
+            <li>Once both players have placed their ships, take turns attacking</li>
+            <li>Red marks indicate hits, blue marks indicate misses</li>
+            <li>Sink all enemy ships to win!</li>
+        </ul>
+        
+        <h2>Ships List:</h2>
         <div class="ships-list">
             <div class="ship-info">
                 <img src="/images/carrier.png" alt="Carrier">
@@ -50,20 +72,25 @@
                 <span>Patrol Boat (1 space)</span>
             </div>
         </div>
-
-        <button id="join-game">Join Game</button>
+    
+        <div class="return-button">
+            <button>Return to Main Menu</button>
+        </div>
     </div>
-
+    
     <div id="connection-status"></div>
 
+
+    <!-- Gaming Screen -->
     <div id="game-screen" class="hidden">
+        <button id="help" class="help">How to Play</button>
         <div class="placement-controls">
-            <div id="ship-placement-info"></div>
             <button id="rotate-ship">Rotate Ship</button>
             <button id="undo-button" disabled>Undo Last Placement</button>
             <button id="ready-button" disabled>Ready</button>
+            <div id="ship-placement-info"></div>
         </div>
-
+    
         <div class="boards-container">
             <div class="grid-container">
                 <h2>Your Board</h2>
@@ -71,24 +98,19 @@
             </div>
             <div>
                 <h2>Opponent's Board</h2>
-                <div id="opponent-grid" class="grid"></div>
+                <div id="opponent-grid" class="opponent-grid"></div>
             </div>
         </div>
-
+    
         <div id="game-status"></div>
 
-        <div class="instructions-container">
-            <div class="game-instructions">
-                <h2>How to Play</h2>
-                <ul class="instruction-list">
-                    <li>Start by placing your ships on your board</li>
-                    <li>Right-click to rotate ships during placement</li>
-                    <li>Ships cannot touch each other (including diagonally)</li>
-                    <li>Once both players have placed their ships, take turns attacking</li>
-                    <li>Red marks indicate hits, blue marks indicate misses</li>
-                    <li>Sink all enemy ships to win!</li>
-                </ul>
-            </div>
+        <div class="sources">
+            <p class="sourcetitle">Sources</p>
+            <span class="sourcestext">
+                <a href="https://www.flaticon.com/free-icons/gaming" title="gaming icons">Gaming icons created by Freepik -
+                    Flaticon</a><br />
+                <a href="https://mixkit.co/free-sound-effects/click/">Game sound effects from Mixkit</a>
+            </span>
         </div>
     </div>
 
@@ -98,15 +120,6 @@
             <p id="game-over-message"></p>
             <button id="play-again">Play Again</button>
         </div>
-    </div>
-
-    <div class="sources">
-        <p class="sourcetitle">Sources</p>
-        <span class="sourcestext">
-            <a href="https://www.flaticon.com/free-icons/gaming" title="gaming icons">Gaming icons created by Freepik -
-                Flaticon</a><br />
-            <a href="https://mixkit.co/free-sound-effects/click/">Game sound effects from Mixkit</a>
-        </span>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
