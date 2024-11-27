@@ -1,8 +1,6 @@
-For Development:
-1. run npm init -y
-2. run npm i express socket.io dotenv ip
-3. run npm i --save-dev nodemon
-4. run npm run dev
-
-For Testing:
-1. run npm start; the links for local game and over the network will appear
+Execution intructions
+1. Make sure to install Node.js https://nodejs.org/en/download/package-manager
+2. At the terminal of the directory (.../Battleship-main) run ‘npm init -y’
+3. Then, run ‘npm i express socket.io dotenv ip’
+4. Once the modules have been installed, run ‘npm start’
+5. Links for the local host and network should show in the terminal
