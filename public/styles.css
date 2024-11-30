@@ -315,8 +315,8 @@ body {
 }
 
 #ship-placement-info {
-    font-family: AkiraExpanded;
-    color: #05d700;
+    font-family: var(--primary-font);
+    color: #096307;
     margin-top: 30px;
     font-size: 1.1em;
 }
@@ -396,7 +396,7 @@ button:disabled {
     text-transform: uppercase;
     letter-spacing: 1px;
     animation: statusPulse 2s infinite;
-    font-family: var(--primary-font);
+    font-family: var(--secondary-font);
 }
 
 @keyframes statusPulse {
@@ -569,6 +569,10 @@ button:disabled {
         grid-template-columns: repeat(10, 30px);
     }
 
+    .opponent-grid {
+        grid-template-columns: repeat(10, 30px);
+    }
+
     .cell {
         width: 30px;
         height: 30px;
@@ -609,6 +613,10 @@ button:disabled {
     }
 
     .grid {
+        grid-template-columns: repeat(10, 25px);
+    }
+
+    .opponent-grid {
         grid-template-columns: repeat(10, 25px);
     }
 
